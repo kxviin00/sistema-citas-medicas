@@ -35,3 +35,40 @@ body,
 a {
   color: #087F73;
 }
+/* Ajustes finales de colores MediNova */
+:root {
+  --ink: #0C5149;
+  --cobalt: #18A999;
+  --pale: #DDF7EF;
+  --border: #B9DED5;
+  --muted: #527A74;
+}
+
+.auth-intro .marca-simbolo,
+.marca-simbolo {
+  background: #18A999 !important;
+  color: #FFFFFF !important;
+}
+
+.auth-intro .eyebrow,
+.eyebrow {
+  color: #6CE5CA !important;
+}
+
+.auth-intro .ticket,
+.ticket {
+  background: #177B70 !important;
+  border-color: #6CE5CA !important;
+  box-shadow: 12px 12px 0 #095B51 !important;
+}
+
+.auth-intro .ticket *,
+.ticket * {
+  color: #FFFFFF !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline-color: #18A999;
+}
