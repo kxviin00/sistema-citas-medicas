@@ -1,8 +1,8 @@
-# Turno Azul — MVP de reserva de citas médicas
+# MediNova — MVP de reserva de citas médicas
 
 Sistema de agenda médica ambulatoria ficticia para el Proyecto Integrador de Análisis y Diseño de Software. Frontend SPA en HTML5, CSS3 y JavaScript nativo (ES modules), base de datos PostgreSQL/Supabase Auth/RLS y despliegue estático en GitHub Pages.
 
-**Integrantes:** [Nombre y apellido del integrante 1] · [Nombre y apellido del integrante 2, si aplica]  
+**Integrantes:**Kevin talero ortega
 **Docente:** Ing. Mg. José Javier Zapata Polo  
 **URL publicada:** [PENDIENTE: URL de GitHub Pages]  
 **Repositorio:** [PENDIENTE: URL del repositorio]
