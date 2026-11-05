@@ -7,3 +7,31 @@
   --bg: #F4FBF8;
 }
 @media(max-width:1050px){.filtros{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-grid{grid-template-columns:1fr 1fr}}@media(max-width:760px){.layout{grid-template-columns:minmax(0,1fr)}.sidebar{padding:15px;gap:12px}.sidebar nav{display:flex;gap:5px;overflow-x:auto;padding:2px 0 8px}.sidebar-label,.sidebar-bottom{display:none}.nav-link{white-space:nowrap;padding:10px 12px}.topbar{min-height:47px}.auth-layout{grid-template-columns:1fr}.auth-intro{min-height:230px;padding:65px 24px 25px}.auth-intro .marca{top:15px;left:24px}.auth-intro h1{font-size:2.3rem;max-width:550px}.auth-intro>p:not(.eyebrow),.decor-ticket{display:none}.auth-form{padding:25px 15px}.dashboard-grid{grid-template-columns:1fr}}@media(max-width:450px){.filtros,.inline-form{grid-template-columns:1fr}.ticket{grid-template-columns:1fr auto}.ticket-main{padding:17px 12px 17px 16px}.ticket-time{padding:14px 9px}.ticket-time .btn{padding:9px}.main-wrapper main{padding:20px 13px}.panel{padding:17px}.topbar-right{display:none}.lista-citas{grid-template-columns:minmax(0,1fr)}.auth-intro h1{font-size:2rem}.auth-form>.panel{padding:23px 18px}.dialog-inner{padding:20px}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+/* Colores definitivos de MediNova */
+:root {
+  --ink: #0C5149;
+  --cobalt: #18A999;
+  --pale: #DDF7EF;
+  --bg: #F4FBF8;
+}
+
+.auth-intro,
+.sidebar {
+  background: #0C5149 !important;
+}
+
+.btn-primary,
+.btn.primaria,
+button[type="submit"] {
+  background: #18A999 !important;
+  border-color: #18A999 !important;
+}
+
+body,
+.auth-layout {
+  background-color: #F4FBF8;
+}
+
+a {
+  color: #087F73;
+}
