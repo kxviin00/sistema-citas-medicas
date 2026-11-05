@@ -72,3 +72,39 @@ a:focus-visible,
 input:focus-visible {
   outline-color: #18A999;
 }
+/* Identidad visual final de MediNova */
+
+/* Nombre MEDINOVA en blanco */
+.auth-intro .marca,
+.auth-intro .marca span,
+.auth-intro .marca a {
+  color: #FFFFFF !important;
+}
+
+/* Logo verde turquesa */
+.marca-simbolo {
+  background: #18A999 !important;
+  color: #FFFFFF !important;
+}
+
+/* Tarjeta decorativa */
+.auth-intro .ticket,
+.auth-intro .ticket-card,
+.auth-intro .ticket-decorativo {
+  background: #177B70 !important;
+  border-color: #6CE5CA !important;
+  box-shadow: 12px 12px 0 #095B51 !important;
+}
+
+/* Textos de la tarjeta */
+.auth-intro .ticket *,
+.auth-intro .ticket-card *,
+.auth-intro .ticket-decorativo * {
+  color: #FFFFFF !important;
+}
+
+/* Colores secundarios */
+.auth-intro .eyebrow,
+.auth-intro .ticket-label {
+  color: #A1F3DF !important;
+}
