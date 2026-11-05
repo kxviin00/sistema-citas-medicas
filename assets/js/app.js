@@ -24,7 +24,7 @@ function cargador(host){host.replaceChildren(cargando());}
 async function load(host,cb){cargador(host);try{const result=await cb(); if(host.isConnected)host.replaceChildren(result);}catch(err){if(host.isConnected)host.replaceChildren(h('div',{class:'error-box',role:'alert'},h('strong',{text:'No pudimos cargar esta sección.'}),h('p',{text:mensajeError(err)}),boton('Volver a intentar',{onClick:()=>load(host,cb)})));}}
 function navigate(route){location.hash='#/'+route;}
 function navDefault(){return rutas[estadoApp.perfil?.rol]?.[0]?.[0]||'reservar';}
-function authShell(children){app.replaceChildren(h('main',{id:'principal',class:'auth-layout'},h('section',{class:'auth-intro'},h('a',{href:'#/login',class:'marca'},h('span',{class:'marca-simbolo',text:'✳'}),' TURNO AZUL'),h('p',{class:'eyebrow',text:'SALUD SIN ENREDOS'}),h('h1',{text:'Tu próxima cita, a un clic de distancia.'}),h('p',{text:'Un espacio sencillo y seguro para organizar tu atención médica.'}),h('div',{class:'decor-ticket','aria-hidden':'true'},h('span',{text:'01   /   TU TIEMPO IMPORTA'}),h('strong',{text:'Agenda con tranquilidad'}),h('span',{text:'MEDICINA · CUIDADO · CONFIANZA'}))),h('section',{class:'auth-form'},children)));
+function authShell(children){app.replaceChildren(h('main',{id:'principal',class:'auth-layout'},h('section',{class:'auth-intro'},h('a',{href:'#/login',class:'marca'},h('span',{class:'marca-simbolo',text:'✳'}),' MEDINOVA'),h('p',{class:'eyebrow',text:'SALUD SIN ENREDOS'}),h('h1',{text:'Tu próxima cita, a un clic de distancia.'}),h('p',{text:'Un espacio sencillo y seguro para organizar tu atención médica.'}),h('div',{class:'decor-ticket','aria-hidden':'true'},h('span',{text:'01   /   TU TIEMPO IMPORTA'}),h('strong',{text:'Agenda con tranquilidad'}),h('span',{text:'MEDICINA · CUIDADO · CONFIANZA'}))),h('section',{class:'auth-form'},children)));
 }
 function loginVista(modo='login'){
  const login=modo==='login',registro=modo==='registro';
@@ -38,7 +38,7 @@ function loginVista(modo='login'){
  else if(login){await api.entrar(d.email,d.password);const session=await api.sesion();if(session?.user)await actualizarSesion(session.user);}
  else{await api.recuperar(d.email);notificar('Si el correo está registrado, recibirás instrucciones para recuperar el acceso.');navigate('login');}
  });
- authShell(card(h('p',{class:'eyebrow',text:'BIENVENIDO A TURNO AZUL'}),h('h2',{text:login?'Inicia sesión':registro?'Crea tu cuenta':'Recupera tu acceso'}),
+ authShell(card(h('p',{class:'eyebrow',text:'BIENVENIDO A MEDINOVA'}),h('h2',{text:login?'Inicia sesión':registro?'Crea tu cuenta':'Recupera tu acceso'}),
  h('p',{class:'muted',text:login?'Tu agenda está lista para ti.':registro?'Todos los registros nuevos comienzan como pacientes.':'Te enviaremos un enlace a tu correo.'}),form,
  h('div',{class:'auth-links'},h('a',{href:login?'#/registro':'#/login',text:login?'Crear cuenta':'Volver al inicio de sesión'}),
  ...(login?[h('a',{href:'#/recuperar',text:'Olvidé mi contraseña'})]:[]))));
@@ -46,7 +46,7 @@ function loginVista(modo='login'){
 function layout(route){
  const perfil=estadoApp.perfil;
  const items=rutas[perfil.rol];
- app.replaceChildren(h('div',{class:'layout'},h('aside',{class:'sidebar'},h('a',{href:'#/'+navDefault(),class:'marca'},h('span',{class:'marca-simbolo',text:'✳'}),' TURNO AZUL'),
+ app.replaceChildren(h('div',{class:'layout'},h('aside',{class:'sidebar'},h('a',{href:'#/'+navDefault(),class:'marca'},h('span',{class:'marca-simbolo',text:'✳'}),' MEDINOVA'),
  h('p',{class:'sidebar-label',text:perfil.rol==='admin'?'ADMINISTRACIÓN':perfil.rol==='profesional'?'EQUIPO MÉDICO':'ESPACIO PACIENTE'}),
  h('nav',{'aria-label':'Menú principal'},items.map(([path,label])=>h('a',{href:'#/'+path,class:'nav-link'+(path===route?' activo':''),...(path===route?{'aria-current':'page'}:{})},label))),
  h('div',{class:'sidebar-bottom'},h('span',{class:'avatar',text:(perfil.nombres||'U').slice(0,1).toUpperCase()}),h('div',{},h('strong',{text:perfil.nombres||'Usuario'}),h('small',{text:perfil.rol})),boton('Salir',{class:'btn salir',onClick:async()=>{try{await api.salir();estadoApp.usuario=null;estadoApp.perfil=null;navigate('login');render();}catch(err){notificar(mensajeError(err),'error');}}}))),
