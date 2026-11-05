@@ -50,7 +50,7 @@ function layout(route){
  h('p',{class:'sidebar-label',text:perfil.rol==='admin'?'ADMINISTRACIÓN':perfil.rol==='profesional'?'EQUIPO MÉDICO':'ESPACIO PACIENTE'}),
  h('nav',{'aria-label':'Menú principal'},items.map(([path,label])=>h('a',{href:'#/'+path,class:'nav-link'+(path===route?' activo':''),...(path===route?{'aria-current':'page'}:{})},label))),
  h('div',{class:'sidebar-bottom'},h('span',{class:'avatar',text:(perfil.nombres||'U').slice(0,1).toUpperCase()}),h('div',{},h('strong',{text:perfil.nombres||'Usuario'}),h('small',{text:perfil.rol})),boton('Salir',{class:'btn salir',onClick:async()=>{try{await api.salir();estadoApp.usuario=null;estadoApp.perfil=null;navigate('login');render();}catch(err){notificar(mensajeError(err),'error');}}}))),
- h('div',{class:'main-wrapper'},h('header',{class:'topbar'},h('span',{text:'Portal de citas · Colombia'}),h('span',{class:'topbar-right',text:'Hora local · Bogotá'})),h('main',{id:'principal',tabindex:'-1'},h('div',{id:'contenido-vista'}))));
+ h('div',{class:'main-wrapper'},h('header',{class:'topbar'},h('span',{text:'Portal de citas · Colombia'}),h('span',{class:'topbar-right',text:'Hora local · Bogotá'})),h('main',{id:'principal',tabindex:'-1'},h('div',{id:'contenido-vista'})))));
  return $('#contenido-vista');
 }
 async function render(){const token=++estadoApp.renderId;
