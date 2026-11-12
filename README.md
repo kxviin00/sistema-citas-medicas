@@ -2,10 +2,10 @@
 
 Sistema de agenda médica ambulatoria ficticia para el Proyecto Integrador de Análisis y Diseño de Software. Frontend SPA en HTML5, CSS3 y JavaScript nativo (ES modules), base de datos PostgreSQL/Supabase Auth/RLS y despliegue estático en GitHub Pages.
 
-**Integrantes:**Kevin talero ortega
+**Autor:** Kevin Talero Ortega
 **Docente:** Ing. Mg. José Javier Zapata Polo  
-**URL publicada:** [PENDIENTE: URL de GitHub Pages]  
-**Repositorio:** [PENDIENTE: URL del repositorio]
+**URL publicada:** Configurar en GitHub → Settings → Pages (enlace sujeto a publicación)  
+**Repositorio:** https://github.com/kxviin00/sistema-citas-medicas
 
 ## Funciones del MVP
 
