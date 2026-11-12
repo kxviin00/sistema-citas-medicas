@@ -28,7 +28,7 @@ export function seleccionar(label,name,items,placeholder='Seleccionar') {
  h('option',{value:'',text:placeholder}),items.map(item=>h('option',{value:item.value,text:item.label}))));
 }
 export function boton(text,options={}) { return h('button',{type:'button',class:'btn',...options},text); }
-export function vacio(mensaje) { return h('div',{class:'empty',role:'status'},h('span',{class:'empty-icon','aria-hidden':'true',text:'✳'}),h('p',{text:mensaje})); }
+export function vacio(mensaje) { return h('div',{class:'empty',role:'status'},h('span',{class:'empty-icon','aria-hidden':'true',text:'✦'}),h('p',{text:mensaje})); }
 export function cargando() { return h('div',{class:'loading',role:'status','aria-live':'polite'},h('span',{class:'spinner','aria-hidden':'true'}),'Cargando información…'); }
 export function notificar(texto,tipo='exito') {
  const region=$('#avisos'); if(!region) return;
