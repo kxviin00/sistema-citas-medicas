@@ -9,6 +9,7 @@ const rutas={
  admin:[['resumen','Resumen'],['especialidades','Especialidades'],['profesionales','Profesionales'],['horarios','Horarios'],['citas','Citas'],['usuarios','Usuarios'],['perfil','Mi perfil']]
 };
 const estadoApp={usuario:null,perfil:null,renderId:0};
+let notificacionWidget=null;
 const iconos={inicio:'⌂',reservar:'▦','mis-citas':'◷',agenda:'▤',resumen:'▥',especialidades:'✳',profesionales:'♙',horarios:'◫',citas:'▣',usuarios:'♧',perfil:'◉'};
 const esFutura=c=>`${c.fecha}T${hora(c.hora_inicio)}`>=`${hoy()}T00:00`;
 const citasOrdenadas=items=>[...items].sort((a,b)=>`${a.fecha} ${a.hora_inicio}`.localeCompare(`${b.fecha} ${b.hora_inicio}`));
@@ -53,9 +54,55 @@ function layout(route){
  h('p',{class:'sidebar-label',text:perfil.rol==='admin'?'ADMINISTRACIÓN':perfil.rol==='profesional'?'EQUIPO MÉDICO':'ESPACIO PACIENTE'}),
  h('nav',{'aria-label':'Menú principal'},items.map(([path,label])=>h('a',{href:'#/'+path,class:'nav-link'+(path===route?' activo':''),...(path===route?{'aria-current':'page'}:{})},h('span',{class:'nav-icon','aria-hidden':'true',text:iconos[path]||'•'}),h('span',{text:label})))),
  h('div',{class:'sidebar-bottom'},h('span',{class:'avatar',text:(perfil.nombres||'U').slice(0,1).toUpperCase()}),h('div',{},h('strong',{text:perfil.nombres||'Usuario'}),h('small',{text:perfil.rol})),boton('Salir',{class:'btn salir',onClick:async()=>{try{await api.salir();estadoApp.usuario=null;estadoApp.perfil=null;navigate('login');render();}catch(err){notificar(mensajeError(err),'error');}}}))),
- h('div',{class:'main-wrapper'},h('header',{class:'topbar'},h('span',{text:'MediNova  /  Portal de atención'}),h('span',{class:'topbar-right',text:'●  Agenda en horario de Bogotá'})),h('main',{id:'principal',tabindex:'-1'},h('div',{id:'contenido-vista'})))));
+ h('div',{class:'main-wrapper'},h('header',{class:'topbar'},h('span',{text:'MediNova  /  Portal de atención'}),h('div',{class:'topbar-tools'},h('span',{class:'topbar-right',text:'●  Agenda en horario de Bogotá'}),crearCampanita())),h('main',{id:'principal',tabindex:'-1'},h('div',{id:'contenido-vista'})))));
  return $('#contenido-vista');
 }
+// Avisos persistentes desde Supabase. No se guardan datos de pacientes en el navegador.
+function crearCampanita(){
+ const control=boton('🔔',{class:'bell-button','aria-label':'Abrir notificaciones','aria-expanded':'false','aria-haspopup':'true'});
+ const contador=h('span',{class:'bell-counter',hidden:true});
+ const encabezado=h('div',{class:'bell-panel-head'},h('strong',{text:'Notificaciones'}));
+ const listado=h('div',{class:'bell-list',role:'list'});
+ const marcar=boton('Marcar todas como leídas',{class:'btn mini secundaria',onClick:async()=>{
+   try{await api.marcarNotificaciones();await refrescarCampanita();}catch(e){notificar(mensajeError(e),'error');}
+ }});
+ encabezado.append(marcar);
+ const panel=h('div',{class:'bell-panel',hidden:true,role:'region','aria-label':'Notificaciones'},encabezado,listado);
+ const caja=h('div',{class:'bell-wrapper'},control,contador,panel);
+ control.addEventListener('click',()=>{
+   panel.hidden=!panel.hidden;control.setAttribute('aria-expanded',String(!panel.hidden));
+   if(!panel.hidden)void refrescarCampanita();
+ });
+ notificacionWidget={caja,contador,listado,marcar};
+ setTimeout(()=>void refrescarCampanita(),0);
+ return caja;
+}
+async function refrescarCampanita(){
+ const w=notificacionWidget,userId=estadoApp.usuario?.id;
+ if(!w||!userId||!w.caja.isConnected)return;
+ try{
+   const items=await api.notificaciones();
+   if(w!==notificacionWidget||!w.caja.isConnected||estadoApp.usuario?.id!==userId)return;
+   const pendientes=items.filter(x=>!x.read_at).length;
+   w.contador.textContent=pendientes>9?'9+':String(pendientes);
+   w.contador.hidden=pendientes===0;
+   w.marcar.disabled=pendientes===0;
+   w.listado.replaceChildren(...(items.length?items.map(n=>{
+     const fecha=new Date(n.created_at).toLocaleString('es-CO',{timeZone:'America/Bogota',dateStyle:'medium',timeStyle:'short'});
+     const item=h('article',{class:'bell-item'+(!n.read_at?' no-leida':''),role:'listitem'},
+       h('div',{class:'bell-item-top'},h('strong',{text:n.titulo}),h('small',{text:fecha})),
+       h('p',{text:n.mensaje}),
+       ...(!n.read_at?[boton('Marcar leída',{class:'btn mini secundaria',onClick:async()=>{
+         try{await api.marcarNotificacion(n.id);await refrescarCampanita();}catch(e){notificar(mensajeError(e),'error');}
+       }})]:[]));
+     return item;
+   }):[h('p',{class:'bell-empty',text:'Todavía no tienes avisos. Las nuevas reservas y cambios de estado aparecerán aquí.'})]));
+ }catch(e){
+   if(w===notificacionWidget&&w.caja.isConnected){w.listado.replaceChildren(h('p',{class:'bell-empty',text:'No se pudieron cargar los avisos. Comprueba que instalaste sql/actualizacion_v3_estadisticas_notificaciones.sql.'}));}
+ }
+}
+window.setInterval(()=>{if(document.visibilityState==='visible'&&estadoApp.usuario)void refrescarCampanita();},60000);
+
 async function render(){const token=++estadoApp.renderId;
  if(!configurado){app.replaceChildren(h('main',{id:'principal',class:'config-error'},titulo('Falta conectar Supabase','Completa la URL y la clave publishable en assets/js/config.js.')));return;}
  if(!estadoApp.usuario){loginVista(location.hash==='#/registro'?'registro':location.hash==='#/recuperar'?'recuperar':'login');return;}
@@ -189,12 +236,67 @@ async function vistaPerfil(){
  enviar(form,async d=>{const actualizado=await api.guardarPerfil(p.id,{nombres:d.nombres,documento:d.documento||null,telefono:d.telefono||null,fecha_nacimiento:d.fecha_nacimiento||null});estadoApp.perfil={...p,...actualizado};notificar('Tus datos se actualizaron correctamente.');});
  return seccion(titulo('Mi perfil','Tu información básica, sin datos clínicos sensibles.'),card(h('span',{class:'eyebrow',text:'DATOS PERSONALES'}),h('p',{class:'muted',text:`Rol de acceso: ${p.rol}`}),form));
 }
+const porcentaje=(n,d)=>d>0?Math.round(n*100/d):0;
+function graficoBarras(tituloGrafico,items,opciones={}){
+ const ordenados=(items||[]).slice(0,opciones.limite||12);
+ const max=Math.max(1,...ordenados.map(x=>Number(x.cantidad)||0));
+ return card(h('div',{class:'chart-title'},h('h2',{text:tituloGrafico}),h('span',{class:'chart-hint',text:opciones.subtitulo||'Cantidad de citas'})),
+   ordenados.length?h('div',{class:'chart-rows'},ordenados.map(x=>{
+     const count=Number(x.cantidad)||0;
+     return h('div',{class:'chart-row'},h('div',{class:'chart-label'},h('span',{text:String(x.nombre).replaceAll('_',' ')}),h('strong',{text:String(count)})),
+       h('div',{class:'chart-track'},h('div',{class:'chart-bar',style:`width:${max?count/max*100:0}%`,'aria-label':`${count} citas`})));
+   })):vacio('No hay datos en el periodo seleccionado.'));
+}
+function csvEstadisticas(d,desde,hasta){
+ const filas=[['MediNova · Estadísticas administrativas'],['Periodo',desde||'Todos',hasta||'Todos'],[],
+ ['Indicador','Valor'],['Citas registradas',d.total],['Programadas',d.programadas],['Confirmadas',d.confirmadas],['Atendidas',d.atendidas],['Canceladas',d.canceladas],['No asistió',d.no_asistio],
+ ['Ocupación de franjas activas (%)',d.ocupacion],[],['Especialidad','Citas'],...(d.especialidades||[]).map(x=>[x.nombre,x.cantidad]),[],
+ ['Profesional','Citas'],...(d.medicos||[]).map(x=>[x.nombre,x.cantidad]),[],['Mes','Citas'],...(d.periodos||[]).map(x=>[x.nombre,x.cantidad])];
+ const escape=x=>'"'+String(x??'').replaceAll('"','""')+'"';
+ const csv='\uFEFF'+filas.map(row=>row.map(escape).join(';')).join('\r\n');
+ const link=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+ link.href=url;link.download=`medinova_estadisticas_${hoy()}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 async function vistaResumen(){
- const resumen=await api.indicadores();
- const agrupar=(etiqueta,items)=>{const max=Math.max(1,...(items||[]).map(x=>Number(x.cantidad)||0));return card(h('h2',{text:etiqueta}),...(items?.length?items.map(x=>h('div',{class:'indicator-item'},h('div',{class:'indicador-linea'},h('span',{text:x.nombre.replaceAll('_',' ')}),h('strong',{text:String(x.cantidad)})),h('div',{class:'progress-track'},h('div',{class:'progress-fill',style:`width:${Math.min(100,Math.max(0,100*(Number(x.cantidad)||0)/max))}%`,'aria-hidden':'true'})))):[vacio('Aún no hay datos para mostrar.') ]));};
- return seccion(titulo('Visión general','Indicadores calculados con información actual de la base de datos.'),
- h('div',{class:'kpi'},h('p',{class:'eyebrow',text:'CITAS REGISTRADAS'}),h('strong',{text:String(resumen.total||0)}),h('span',{text:'Total histórico'})),
- h('div',{class:'dashboard-grid'},agrupar('Por estado',resumen.estados),agrupar('Por especialidad',resumen.especialidades),agrupar('Por periodo',resumen.periodos)));
+ const desde=campo('Desde','date','desde',{});
+ const hasta=campo('Hasta','date','hasta',{});
+ const filtro=h('form',{class:'analytics-filters'},desde,hasta,botonSubmit('Aplicar filtro'));
+ const contenedor=h('div',{class:'analytics-results'});
+ const hoyLocal=hoy();
+ const inicio30=new Date(`${hoyLocal}T12:00:00`);inicio30.setDate(inicio30.getDate()-29);
+ const fecha30=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota',year:'numeric',month:'2-digit',day:'2-digit'}).format(inicio30);
+ $('input',desde).value=fecha30;
+ $('input',hasta).value=hoyLocal;
+ const accesos=h('div',{class:'analytics-presets'},
+   boton('Últimos 30 días',{class:'btn mini secundaria',onClick:()=>{ $('input',desde).value=fecha30;$('input',hasta).value=hoyLocal;void cargar();}}),
+   boton('Todo el historial',{class:'btn mini secundaria',onClick:()=>{$('input',desde).value='';$('input',hasta).value='';void cargar();}}));
+ async function cargar(){
+   const a=$('input',desde).value||null,b=$('input',hasta).value||null;
+   if(a&&b&&a>b){notificar('La fecha de inicio debe ser anterior o igual a la final.','error');return;}
+   contenedor.replaceChildren(cargando());
+   try{
+     const d=await api.estadisticasV3(a,b);
+     const kpis=[
+       ['Citas registradas',d.total,'En el periodo'],['Citas programadas',d.programadas,'Pendientes de confirmación'],
+       ['Atendidas',d.atendidas,'Consultas completadas'],['Canceladas',d.canceladas,`${porcentaje(d.canceladas,d.total)}% de las citas`],
+       ['Ocupación',`${d.ocupacion}%`,'Franjas reservadas / franjas activas'],['Confirmadas',d.confirmadas,'Pendientes de atención']];
+     const resumen=h('div',{class:'analytics-kpis'},kpis.map(([tituloKpi,valor,desc])=>h('article',{class:'analytics-kpi'},
+       h('span',{text:tituloKpi}),h('strong',{text:String(valor??0)}),h('small',{text:desc}))));
+     const cabecera=h('div',{class:'analytics-heading'},
+       h('div',{},h('p',{class:'eyebrow',text:'ANÁLISIS DE ACTIVIDAD'}),h('h2',{text:'Tu clínica en números'}),h('p',{class:'muted',text:'Datos obtenidos directamente de Supabase según el periodo seleccionado.'})),
+       boton('↓ Exportar CSV',{class:'btn secundaria',onClick:()=>csvEstadisticas(d,a,b)}));
+     const tarjetas=h('div',{class:'analytics-charts'},
+       graficoBarras('Citas por especialidad',d.especialidades,{limite:12}),
+       graficoBarras('Citas por profesional',d.medicos,{limite:12}),
+       graficoBarras('Evolución mensual',d.periodos,{limite:24,subtitulo:'Citas por mes'}),
+       graficoBarras('Distribución por estado',d.estados));
+     contenedor.replaceChildren(cabecera,resumen,tarjetas,
+       h('p',{class:'analytics-footnote',text:'Ocupación: franjas con estado “reservada” dividido entre franjas activas (“disponible” + “reservada”) en el periodo. Las citas canceladas siguen contando en el historial de citas.'}));
+   }catch(err){contenedor.replaceChildren(h('div',{class:'error-box',role:'alert'},h('strong',{text:'No se pudieron consultar las estadísticas.'}),h('p',{text:mensajeError(err)}),h('p',{text:'Verifica que hayas instalado la migración SQL de MediNova 2.1.'}),boton('Reintentar',{onClick:()=>void cargar()})));}
+ }
+ filtro.addEventListener('submit',e=>{e.preventDefault();void cargar();});
+ void cargar();
+ return seccion(titulo('Estadísticas de la clínica','Actividad real de citas, especialidades, profesionales y uso de horarios.'),filtro,accesos,contenedor);
 }
 async function vistaEspecialidades(){
  const items=await api.especialidades();
