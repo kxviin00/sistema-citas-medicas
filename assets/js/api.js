@@ -19,6 +19,7 @@ export const api = {
   profesionales: async (p_especialidad=null) => revisar(await db.rpc('listar_profesionales',{p_especialidad})),
   disponibilidad: async ({p_especialidad=null,p_profesional=null,p_fecha=null}) => revisar(await db.rpc('buscar_disponibilidad',{p_especialidad,p_profesional,p_fecha})),
   reservar: async (p_schedule_id,p_motivo) => revisar(await db.rpc('reservar_cita',{p_schedule_id,p_motivo})),
+  reprogramar: async (p_cita_id,p_nueva_franja) => revisar(await db.rpc('reprogramar_cita',{p_cita_id,p_nueva_franja})),
   citas: async () => revisar(await db.rpc('listar_citas')),
   estado: async (p_cita_id,p_estado) => revisar(await db.rpc('cambiar_estado_cita',{p_cita_id,p_estado})),
   indicadores: async (p_desde=null,p_hasta=null) => revisar(await db.rpc('indicadores',{p_desde,p_hasta})),
@@ -40,6 +41,7 @@ export function mensajeError(error) {
  if (/Password should be at least/i.test(msg)) return 'La contraseña debe tener mínimo 8 caracteres.';
  if (/already registered|already exists|duplicate key/i.test(msg)) return 'Ese registro ya existe.';
  if (/franja ya no está disponible|unique constraint|appointments_schedule_ocupada/i.test(msg)) return 'Ese horario acaba de ocuparse. Elige otro.';
+ if (/reprogramaci[oó]n|No puedes reprogramar/i.test(msg)) return msg;
  if (/12 horas/i.test(msg)) return 'Solo puedes cancelar con al menos 12 horas de anticipación.';
  if (/agenda ajena|acceso denegado|no autorizado|permission denied|row-level security/i.test(msg)) return 'No tienes permisos para realizar esta acción.';
  if (/transición de estado/i.test(msg)) return 'No puedes realizar ese cambio de estado.';
